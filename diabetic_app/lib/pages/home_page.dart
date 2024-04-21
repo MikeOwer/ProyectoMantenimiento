@@ -1,3 +1,4 @@
+import 'package:diabetic_app/my_widgets/activity_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:diabetic_app/my_classes/auth.dart';
@@ -7,7 +8,8 @@ import 'package:diabetic_app/my_widgets/menu_button_widget.dart';
 import 'package:diabetic_app/controllers/quiz_controller.dart';
 
 class HomePage extends StatefulWidget {
-  HomePage({Key? key}) : super(key: key);
+  //Se visualiza las tarjetas de noticias y accesos directos
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -25,21 +27,44 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _title() {
-    return const Text(
+    return Container(
+      child: Center(
+        child: Text(
+          'Gluconexión',
+          style: TextStyle(fontSize: 34.0, color: Colors.white),
+        ),
+      ),
+    );
+    /*return const Text(
       'Gluconexión',
-      style: TextStyle(fontSize: 26),
-    ); //DEBE MODIFICARSE CUANDO SE TENGA UN NOMBRE MÁS ADECUADO
+      style: TextStyle(
+        fontSize: 26, /*color: Colors.white*/
+      ),
+    );
+    //DEBE MODIFICARSE CUANDO SE TENGA UN NOMBRE MÁS ADECUADO
+    */
   }
 
   List<Widget> _buildNewsList() {
+    //Se crea la lista de las tarjetas de las noticias.
     List<Widget> widgets = [];
+    widgets.add(const ActivityCard());
     for (int i = 0; i < news.length; i++) {
       widgets.add(news[i]);
       if (i != news.length - 1) {
-        widgets.add(SizedBox(
+        widgets.add(const SizedBox(
           height: 20,
         ));
       }
+    }
+    return widgets;
+  }
+
+//Cambiar el codigo, cuando haya una lista de actividades
+  List<Widget> _buildActivityList() {
+    List<Widget> widgets = [];
+    for (int i = 0; i < 1; i++) {
+      widgets.add(const ActivityCard());
     }
     return widgets;
   }
@@ -73,24 +98,24 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Widget _noticeWidget() {
+  /*Widget _noticeWidget() {
     bool logedIn = (user != null);
     return Center(
       child: Card(
         color: Colors.white54,
         child: Padding(
-          padding: EdgeInsets.all(15),
+          padding: const EdgeInsets.all(15),
           child: Column(
             children: [
               Text(
                 logedIn
                     ? '¡Bienvenido de vuelta!'
                     : 'No ha iniciado sesión o su sesión ha expirado.',
-                style: TextStyle(fontSize: 20),
+                style: const TextStyle(fontSize: 20),
               ),
               TextButton(
                 onPressed: _closeNoticeWidget,
-                child: Text(
+                child: const Text(
                   'Cerrar',
                   style: TextStyle(fontSize: 20, color: Colors.grey),
                 ),
@@ -100,14 +125,15 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFF002556),
         title: _title(),
-        actions: [
+        actions: const [
           Padding(
             padding: EdgeInsets.only(right: 10),
             child: MenuButtonWidget(),
@@ -117,14 +143,16 @@ class _HomePageState extends State<HomePage> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: <Widget>[
-          Text(
-            '¿Sabías qué?',
+          const Text(
+            'Actividades',
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 26,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          if (noticeVisible) _noticeWidget(),
-          SizedBox(height: 20),
+          //if (noticeVisible) _noticeWidget(),
+          const SizedBox(height: 20),
           // Add the newsWidgets using addAll
           ..._buildNewsList(),
         ],

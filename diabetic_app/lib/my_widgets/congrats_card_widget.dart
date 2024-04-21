@@ -1,79 +1,117 @@
 import 'package:diabetic_app/controllers/quiz_controller.dart';
 import 'package:diabetic_app/pages/quiz_lobby_page.dart';
+import 'package:diabetic_app/pages/quiz_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../my_classes/auth.dart';
 
-class CongratsCardWidget extends StatelessWidget{
-
+class CongratsCardWidget extends StatelessWidget {
+  //Tarjeta para pasar al siguiente nivel
   final User? user = Auth().currentUser;
   QuizController quizController = QuizController.getInstance();
   int level = 0;
 
-  CongratsCardWidget({required this.level});
+  CongratsCardWidget();
 
   Future shareWithFacebook(int level) async {
-    final text = '¡He completado con éxito el nivel $level del Quiz de DiabeticAwareness!.';
+    final text =
+        '¡He completado con éxito el nivel $level del Quiz de DiabeticAwareness!.';
     await Share.share(text);
     updateProgress();
   }
 
   void updateProgress() {
-    if((quizController.quizProgress.getMaxLevel() == quizController.quizProgress.getHealthyLevels()
-    && quizController.quizProgress.getMaxLevel() > this.level)
-    || quizController.quizProgress.getMaxLevel() == 0){
-      quizController.quizProgress.increaseMaxLevel();
-      quizController.quizProgress.increaseHealthyLevels();
-    } else if (quizController.quizProgress.getMaxLevel() > quizController.quizProgress.getHealthyLevels()){
-      quizController.quizProgress.increaseHealthyLevels();
-    }
+    quizController.quizProgress.increaseMaxLevel();
     quizController.updateProgressJSONFile();
     quizController.resetQuiz();
   }
-  void goBackToQuizMenu(BuildContext context){
+
+  void goBackToQuizMenu(BuildContext context) {
     updateProgress();
-    Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => QuizLobbyPage())
-    );
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const QuizLobbyPage()));
   }
 
   Widget _facebookButton() {
     return ElevatedButton(
-      onPressed: () => shareWithFacebook(this.level),
-      child: Text(
-          'Compartir mi logro'
-      ),
+      onPressed: () => shareWithFacebook(level),
+      child: const Text('Compartir mi logro'),
     );
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Center(
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.35,
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Text("¡Felicidades!\n Completaste exitosamente el nivel.",
-                  style: TextStyle(fontSize: 24),
-                  textAlign: TextAlign.center,
+        child: SizedBox(
+      height: MediaQuery.of(context).size.height * 0.85,
+      child: Card(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(width: 10, color: Color(0xFF002556))),
+        child: Padding(
+          padding:
+              EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.2),
+          child: Column(
+            children: [
+              Text(
+                "¡Felicidades!\n Completaste exitosamente el nivel.",
+                style: TextStyle(
+                  fontSize: 35,
+                  color: Color(0xFF002556),
                 ),
-                SizedBox(height: 40,),
-                user != null? _facebookButton() : SizedBox(),
-                GestureDetector(
-                  onTap: () => goBackToQuizMenu(context),
-                  child: Text("Regresar al menú"),
-                )
-              ],
-            ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.05,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    size: 60,
+                    color: Color(
+                        0xFF002556), // Puedes cambiar el color según tus preferencias
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.05,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "¡Nivel 2 desbloqueado!",
+                    style: TextStyle(
+                      fontSize: 35,
+                      color: Color(0xFF002556),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.02,
+              ),
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => QuizPage()));
+                    },
+                    child: Text(
+                      'Continuar',
+                      style: TextStyle(fontSize: 30),
+                    )),
+              )
+            ],
           ),
         ),
       ),
-    );
+    ));
   }
 }

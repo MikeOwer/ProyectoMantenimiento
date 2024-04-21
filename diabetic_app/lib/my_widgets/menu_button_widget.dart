@@ -1,4 +1,5 @@
 import 'package:diabetic_app/pages/config_page.dart';
+import 'package:diabetic_app/pages/quiz_page.dart';
 import 'package:flutter/material.dart';
 import 'package:diabetic_app/pages/login_register_page.dart';
 import 'package:diabetic_app/pages/quiz_lobby_page.dart';
@@ -6,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../my_classes/auth.dart';
 
 class MenuButtonWidget extends StatefulWidget {
+  const MenuButtonWidget({super.key});
+
   @override
   State createState() => _MenuButtonWidgetState();
 }
@@ -17,14 +20,14 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
   Widget menuLoginButton(BuildContext context) {
     return GestureDetector(
       onTap: () => loginButtonPressed(context),
-      child: Text('Iniciar Sesión'),
+      child: const Text('Iniciar Sesión'),
     );
   }
 
   Widget menuProfileButton(BuildContext context) {
     return GestureDetector(
       onTap: () => configButtonPressed(context),
-      child: Text('Configuración'),
+      child: const Text('Configuración'),
     );
   }
 
@@ -33,19 +36,19 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
         context,
         MaterialPageRoute(
             builder: (context) =>
-                QuizLobbyPage()) //Manera de entrar a el quiz rápido
+                QuizPage()) //Manera de entrar a el quiz rápido
         );
   }
   //Espacio para los demás métodos de acción de los botones restantes
 
   void loginButtonPressed(BuildContext context) {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => LoginPage()));
+        context, MaterialPageRoute(builder: (context) => const LoginPage()));
   }
 
   void configButtonPressed(BuildContext context) {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => ConfigPage()));
+        context, MaterialPageRoute(builder: (context) => const ConfigPage()));
   }
 
   @override
@@ -55,17 +58,17 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
         PopupMenuItem(
           child: GestureDetector(
             onTap: () => quizButtonPressed(context),
-            child: Text('Quiz'),
+            child: const Text('Explorando tu bienestar'),
           ),
         ),
-        PopupMenuItem(
+        const PopupMenuItem(
           child: Row(
             children: [
               Text('Opción 1'),
             ],
           ),
         ),
-        PopupMenuItem(
+        const PopupMenuItem(
           child: Row(
             children: [
               Text('Opción 2'),
@@ -73,12 +76,13 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
           ),
         ),
         PopupMenuItem(
-          child: user != null
-              ? menuProfileButton(context)
-              : menuLoginButton(context),
+          child: menuLoginButton(context),
+          //child: user != null
+          //  ? menuProfileButton(context)
+          //  : menuLoginButton(context),
         ),
       ],
-      child: Icon(
+      child: const Icon(
         Icons.menu,
         size: 36,
       ),

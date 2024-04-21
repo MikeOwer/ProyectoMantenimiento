@@ -9,7 +9,8 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 class QuizController {
-  static QuizController? _instance;
+  //Se maneja toda la lógica de las preguntas del quiz
+  static QuizController? _instance; //Se aplica el patrón de diseño Singleton
   List<String> questions = [];
   List<String> correctOpts = [];
   List<List<String>> incorrectOpts = [];
@@ -17,21 +18,30 @@ class QuizController {
   List<QuizQuestion> levelQuestionsCopy = [];
   String questionsPath = 'assets/question_files/preguntas.json';
   Progress quizProgress = Progress();
+  List<String> completedQuestions = [];
 
   int stage = 0;
 
   QuizController._();
 
   static QuizController getInstance() {
-    if (_instance == null) {
-      _instance = QuizController._();
-    }
+    _instance ??= QuizController._();
     return _instance!;
   }
 
   void increaseStage() {
-    if (stage < 4) {
+    //Se inncrementa el número de pregunta actual al responder bien una
+    if (quizProgress.getMaxLevel() < 3) {
+      if (stage < 6) {
+        //Uno más para detectar un cambio del nivel
+        this.stage++;
+        this.quizProgress.increaseCurrentQuestion();
+        updateProgressJSONFile(); //Y sobreescribiendo el progreso
+      }
+    } else {
       this.stage++;
+      this.quizProgress.increaseCurrentQuestion();
+      updateProgressJSONFile();
     }
   }
 
@@ -41,6 +51,8 @@ class QuizController {
 
   void resetQuiz() {
     this.stage = 0;
+    this.quizProgress.currentQuestion = 0;
+    updateProgressJSONFile(); //Se reinicia a 0 el número de pregunta actual cuando pasa de nivel
   }
 
   List<QuizQuestion> getLevelQuestionsCopy() {
@@ -53,16 +65,37 @@ class QuizController {
       final String response = await rootBundle.loadString(questionsPath);
       final data = await json.decode(response);
 
-      List<dynamic> nivelesList = data['niveles']; //Lee los niveles diponibles
-      List<dynamic> questionsList = nivelesList[level - 1]
-          ['preguntas']; //Accede a las preguntas del nivel solicitado
-      for (var question in questionsList) {
-        questions.add(question['texto']); //Se añaden las preguntas
-        correctOpts.add(question['respuestas']
-            ['correcta']); //Se añade las respuestas correctas
-        incorrectOpts.add(List<String>.from(question['respuestas']
-            ['incorrectas'])); //Se añaden las respuestas incorrectas como lista
+      if (level < 2) {
+        //Esto solo funciona en los primeros dos niveles
+        List<dynamic> nivelesList =
+            data['niveles']; //Lee los niveles diponibles
+        List<dynamic> questionsList = nivelesList[level]
+            ['preguntas']; //Accede a las preguntas del nivel solicitado
+        for (var question in questionsList) {
+          questions.add(question['texto']); //Se añaden las preguntas
+          correctOpts.add(question['respuestas']
+              ['correcta']); //Se añade las respuestas correctas
+          incorrectOpts.add(List<String>.from(question['respuestas'][
+              'incorrectas'])); //Se añaden las respuestas incorrectas como lista
+        }
+      } else {
+        List<dynamic> nivelesList =
+            data['niveles']; //Lee los niveles diponibles
+        List<dynamic> questionsList = nivelesList[level - 2]
+            ['preguntas']; //Accede a las preguntas del nivel 1
+        List<dynamic> questionsList2 = nivelesList[level - 1]
+            ['preguntas']; //Accede a las preguntas del nivel 2
+        questionsList
+            .addAll(questionsList2); //Combina las preguntas de ambos niveles
+        for (var question in questionsList) {
+          questions.add(question['texto']); //Se añaden las preguntas
+          correctOpts.add(question['respuestas']
+              ['correcta']); //Se añade las respuestas correctas
+          incorrectOpts.add(List<String>.from(question['respuestas'][
+              'incorrectas'])); //Se añaden las respuestas incorrectas como lista
+        }
       }
+
       buildLevelQuestionsList();
     } catch (e) {
       print('Exception catched: $e');
@@ -96,6 +129,7 @@ class QuizController {
         int randomNum = random.nextInt(levelQuestionsCopy.length);
         deliverableQuestion =
             levelQuestionsCopy[randomNum]; //Se genera una pregunta aleatoria
+        //Solo funcionaría en los primeros dos niveles
         levelQuestionsCopy.removeAt(
             randomNum); //Se remueve la pregunta de la lista de opciones -- Esto hay que preguntarlo
       }
@@ -106,19 +140,23 @@ class QuizController {
   }
 
   void returnQuestion(QuizQuestion returnedQuestion) {
-    this.levelQuestionsCopy.add(returnedQuestion);
+    levelQuestionsCopy.add(returnedQuestion);
   }
 
   Future<void> readProgressJSONFile() async {
     try {
-      String path = await getProgressFilePath();
+      String path = await getProgressFilePath(); //Se obtiene la ruta del json
       File file = File(path);
       if (await file.exists()) {
         String response = await file.readAsString();
-        final data = await json.decode(response);
+        final data = await json
+            .decode(response); //Se obtiene el Json con el que se trabajará
 
-        Progress progress = Progress.constructor(data['nivelMaxCompletado'],
-            data['nivelesSanos'], parseDateString(data['ultimoInicio']));
+        Progress progress = Progress.constructor(
+            data['nivelMaxCompletado'],
+            data['nivelesSanos'],
+            data['preguntaActual'],
+            parseDateString(data['ultimoInicio']));
         quizProgress = progress;
         compareDates();
       } else {
@@ -132,7 +170,8 @@ class QuizController {
 
   Future<String> getProgressFilePath() async {
     final directory = await getApplicationDocumentsDirectory();
-    return '${directory.path}/progreso.json';
+    print(directory.path);
+    return '${directory.path}/progress_test20.json'; //Se llamaba progreso --- Nombre provisional
   }
 
   Future<void> createProgressJSONFile(Map<String, dynamic> jsonData) async {
@@ -148,7 +187,9 @@ class QuizController {
     String fechaString = '${fecha.day}/${fecha.month}/${fecha.year}';
     Map<String, dynamic> data = {
       "nivelMaxCompletado": quizProgress.getMaxLevel(),
-      "nivelesSanos": quizProgress.getHealthyLevels(),
+      "nivelesSanos": quizProgress
+          .getHealthyLevels(), //Esto servirá para mantenerse en el nivel 3
+      "preguntaActual": quizProgress.getCurrentQuestion(),
       "ultimoInicio": fechaString
     };
     await createProgressJSONFile(data); //Se sobrescribe el progreso actual
@@ -166,10 +207,18 @@ class QuizController {
 
     Duration difference = currentDate.difference(registeredDate);
     int differenceInDays = difference.inDays;
-
+//-----------------------------------------------------------------------------------------------------------------------------------------
     if (differenceInDays > 4) {
+      //Hay que agregar cambios aquí, se busca bajar de nivel al no responder correctamente 5 preguntas en un mes
+      //Si hay 5 healthyLevels terminando el mes se mantiene el nivel 3, en caso de no haber se retrocede al nivel 2
       //print('Han pasado más de 4 días desde la fecha registrada');
       quizProgress.decreaseHealthyLevels();
+
+      //Si se tiene los niveles de salud en 0 se reducirá un nivel de la actividad y se reiniciará el número de preguntas
+      if (quizProgress.getHealthyLevels() == 0) {
+        quizProgress.decreaseLevels();
+        quizProgress.currentQuestion = 0;
+      }
     }
     //Actualizar el JSON con la fecha actual
     quizProgress.updateLastLogin();
