@@ -177,6 +177,8 @@ class _QuizPageState extends State<QuizPage> {
   }
 
   Widget _quizBackgroundLayout() {
+    var equalValueForTree = (MediaQuery.of(context).size.width * 0.25);
+    var equalValueForQuestions = (MediaQuery.of(context).size.width * 0.30);
     return Stack(
       //Trabaja como un espacio para acomodar widgets
       children: [
@@ -189,8 +191,8 @@ class _QuizPageState extends State<QuizPage> {
         ),
         Positioned(
           //Imagen del tronco del árbol
-          left: 125,
-          right: 125,
+          left: equalValueForTree,
+          right: equalValueForTree,
           bottom: 0,
           top: 0,
           child: Image.asset(
@@ -200,8 +202,8 @@ class _QuizPageState extends State<QuizPage> {
         ),
         Positioned(
           //Los botones de las preguntas
-          left: 125,
-          right: 125,
+          left: equalValueForQuestions,
+          right: equalValueForQuestions,
           bottom: 0,
           top: 0,
           child: SizedBox(
@@ -242,6 +244,7 @@ class _QuizPageState extends State<QuizPage> {
 
   List<Widget> buildTolokList() {
     List<Widget> tolokList = [];
+    var tolokWidthContainer = (MediaQuery.of(context).size.width * 0.28);
 
     for (int i = 0; i < 5; i++) {
       //Modificar lo del tolok
@@ -249,7 +252,7 @@ class _QuizPageState extends State<QuizPage> {
         Container(
           //color: Colors.red,
           child: SizedBox(
-            width: 160,
+            width: tolokWidthContainer,
             child: Container(
               width: MediaQuery.of(context).size.width * 0.2,
               height: MediaQuery.of(context).size.height * 0.185,
