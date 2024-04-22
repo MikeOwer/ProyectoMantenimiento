@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:diabetic_app/ProyectColors.dart';
 import 'package:diabetic_app/my_classes/quiz_question.dart';
 import 'package:diabetic_app/my_widgets/question_card_widget.dart';
 import 'package:diabetic_app/my_widgets/quiz_option_widget.dart';
@@ -272,8 +273,10 @@ class _QuizPageState extends State<QuizPage> {
     List<Widget> buttonList = [];
     //List<QuizQuestion> questionList = quizController.getLevelQuestionsCopy();
 
+    int currentQuestion = quizController.quizProgress.currentQuestion;
+
     buttonList.add(
-      _buildPrimerElemento(),
+      _buildPrimerElemento(currentQuestion),
     );
 
     for (int i = 1; i < 5; i++) {
@@ -285,25 +288,22 @@ class _QuizPageState extends State<QuizPage> {
               width: 200,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50.0),
-                  ),
-                  backgroundColor: setButtonColor(
-                      quizController.quizProgress.currentQuestion,
-                      i), //Cambio de los colores a blanco
-                  disabledBackgroundColor: Colors.white,
-                ),
-                //Se desabilita el widget si el botón es mayor a la pregunta actual
-                onPressed: i > quizController.quizProgress.currentQuestion
-                    ? null
-                    : () => _toggleCardVisibility(),
-                child: setTextButton(
-                    quizController.quizProgress.currentQuestion, i),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50.0),
+                    ),
+                    backgroundColor: setButtonColor(
+                        currentQuestion, i), //Cambio de los colores a blanco
+                    disabledBackgroundColor: i > currentQuestion
+                        ? ProyectColors().secundaryBackColor
+                        : ProyectColors().primaryColor),
+                //Se desabilita el widget si el botón es diferente a la pregunta actual
+                onPressed:
+                    i != currentQuestion ? null : () => _toggleCardVisibility(),
+                child: setTextButton(currentQuestion, i),
               ),
             ),
             Container(
-              color: setButtonColor(
-                  quizController.quizProgress.currentQuestion, i),
+              color: setButtonColor(currentQuestion, i),
               height: MediaQuery.of(context).size.height * 0.12,
               width: 15,
             ),
@@ -314,7 +314,7 @@ class _QuizPageState extends State<QuizPage> {
     return buttonList;
   }
 
-  Widget _buildPrimerElemento() {
+  Widget _buildPrimerElemento(int currentQuestion) {
     //Tarjeta de la pregunta 1
     double screenWidth = MediaQuery.of(context).size.width;
     double fontSizePercentage = screenWidth * 0.05;
@@ -325,13 +325,13 @@ class _QuizPageState extends State<QuizPage> {
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: Color(0xFF002556),
+            disabledBackgroundColor: Color(0xFF002556),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(50.0),
             ),
           ),
-          onPressed: () {
-            _toggleCardVisibility();
-          },
+          onPressed:
+              currentQuestion >= 1 ? null : () => _toggleCardVisibility(),
           child: Text(
             'Pregunta 1',
             style: TextStyle(
