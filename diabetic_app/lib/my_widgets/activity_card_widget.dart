@@ -7,26 +7,26 @@ class ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    QuizPage()) //Manera de entrar a el quiz rápido
-            );
-      },
-      child: Column(
-        children: [
-          Container(
-            width:
-                MediaQuery.of(context).size.width * 5, // Ancho deseado del card
-            height: 200,
-            //padding: EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.circular(20),
-            ),
+    return Column(
+      children: [
+        Container(
+          width:
+              MediaQuery.of(context).size.width * 5, // Ancho deseado del card
+          height: 200,
+          //padding: EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          QuizPage()) //Manera de entrar a el quiz rápido
+                  );
+            },
             child: Card(
               color: const Color(0xFF002556), //Color de fondo de las tarjetas
               shape: RoundedRectangleBorder(
@@ -99,30 +99,30 @@ class ActivityCard extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(
-            height: 100,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Noticias',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 25.0,
-                  ),
+        ),
+        const SizedBox(
+          height: 100,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Noticias',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 25.0,
                 ),
-                SizedBox(width: 15.0), // Espaciado entre el texto y el icono
-                Icon(
-                  Icons.arrow_downward,
-                  color: Colors.black,
-                  size: 35,
-                ),
-                SizedBox(height: 8.0), // Espaciado entre el icono y el texto
-              ],
-            ),
-          )
-        ],
-      ),
+              ),
+              SizedBox(width: 15.0), // Espaciado entre el texto y el icono
+              Icon(
+                Icons.arrow_downward,
+                color: Colors.black,
+                size: 35,
+              ),
+              SizedBox(height: 8.0), // Espaciado entre el icono y el texto
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
