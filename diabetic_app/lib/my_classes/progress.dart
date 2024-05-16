@@ -14,7 +14,7 @@ class Progress {
   }
 
   int getMaxLevel() {
-    return this.maxLevel!;
+    return this.maxLevel;
   }
 
   int getHealthyLevels() {
@@ -31,7 +31,7 @@ class Progress {
 
   void increaseMaxLevel() {
     if (this.maxLevel < 3) {
-      this.maxLevel = this.maxLevel! + 1;
+      this.maxLevel = this.maxLevel + 1;
     }
   }
 
@@ -39,7 +39,7 @@ class Progress {
   //en caso de que no entre el usuario
   void increaseHealthyLevels() {
     if (this.healthyLevels < 3) {
-      this.healthyLevels = this.healthyLevels! + 1;
+      this.healthyLevels = this.healthyLevels + 1;
     }
   }
 
@@ -62,7 +62,7 @@ class Progress {
 
   void decreaseHealthyLevels() {
     if (this.healthyLevels > 0) {
-      this.healthyLevels = this.healthyLevels! - 1;
+      this.healthyLevels = this.healthyLevels - 1;
     }
   }
 
