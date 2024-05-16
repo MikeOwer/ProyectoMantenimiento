@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   NewsController newsController = NewsController();
   QuizController quizController = QuizController.getInstance();
   bool noticeVisible = true;
+  bool isVisible = true;
 
   Future<void> signOut() async {
     await Auth().signOut();
@@ -48,7 +49,7 @@ class _HomePageState extends State<HomePage> {
   List<Widget> _buildNewsList() {
     //Se crea la lista de las tarjetas de las noticias.
     List<Widget> widgets = [];
-    widgets.add(const ActivityCard());
+    //widgets.add(const ActivityCard());
     for (int i = 0; i < news.length; i++) {
       widgets.add(news[i]);
       if (i != news.length - 1) {
@@ -98,6 +99,11 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void toggleVisibility() {
+    setState(() {
+      isVisible = !isVisible;
+    });
+  }
   /*Widget _noticeWidget() {
     bool logedIn = (user != null);
     return Center(
@@ -151,10 +157,89 @@ class _HomePageState extends State<HomePage> {
               fontWeight: FontWeight.bold,
             ),
           ),
+          ..._buildActivityList(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Noticias',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 25.0,
+                ),
+              ),
+              const SizedBox(width: 30),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    isVisible = !isVisible; // Cambia el estado de visibilidad
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  primary: Colors
+                      .transparent, // Establece el color de fondo como transparente
+                  elevation:
+                      0, // Opcional: Elimina la elevación para que parezca completamente plano
+                ),
+                child: Icon(
+                  isVisible ? Icons.arrow_downward : Icons.arrow_upward,
+                  color: Colors.black,
+                  size: 35,
+                ),
+              ),
+            ],
+          ),
+          if (isVisible) ..._buildNewsList()
+
           //if (noticeVisible) _noticeWidget(),
-          const SizedBox(height: 20),
-          // Add the newsWidgets using addAll
-          ..._buildNewsList(),
+          /*SizedBox(
+            height: 100,
+            /*child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Visibility(
+                  visible: isVisible,
+                  child: Container(
+                      child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Noticias',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 25.0,
+                            ),
+                          ),
+                          const SizedBox(width: 30),
+                          ElevatedButton(
+                            child: Icon(
+                              Icons.arrow_downward,
+                              color: Colors.black,
+                              size: 25,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isVisible = !isVisible;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              primary: Colors
+                                  .transparent, // Establece el color de fondo como transparente
+                              elevation:
+                                  0, // Opcional: Elimina la elevación para que parezca completamente plano
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      ..._buildNewsList(),
+                    ],
+                  )),
+                ),
+              ],
+            ),¨*/
+          ),*/
         ],
       ),
     );
