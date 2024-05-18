@@ -1,3 +1,4 @@
+import 'package:diabetic_app/ProyectColors.dart';
 import 'package:diabetic_app/pages/config_page.dart';
 import 'package:diabetic_app/pages/quiz_page.dart';
 import 'package:flutter/material.dart';
@@ -53,18 +54,24 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final widthOfScreen = MediaQuery.of(context).size.width;
+    final heightOfScreen = MediaQuery.of(context).size.height;
+
     return PopupMenuButton(
       itemBuilder: (context) => [
         PopupMenuItem(
-          child: GestureDetector(
-            onTap: () => quizButtonPressed(context),
-            child: const Text('Explorando tu bienestar'),
-          ),
-        ),
+            child: Row(
+          children: [
+            GestureDetector(
+              onTap: () => quizButtonPressed(context),
+              child: const Text('Explorando tu bienestar'),
+            ),
+          ],
+        )),
         const PopupMenuItem(
           child: Row(
             children: [
-              Text('Opción 1'),
+              Text("Opción 1"),
             ],
           ),
         ),
@@ -76,15 +83,23 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
           ),
         ),
         PopupMenuItem(
-          child: menuLoginButton(context),
+            child: Row(
+          children: [
+            menuLoginButton(context),
+          ],
+        )
           //child: user != null
           //  ? menuProfileButton(context)
           //  : menuLoginButton(context),
         ),
       ],
+      color: ProyectColors().backgroundColor,
+      constraints: BoxConstraints.expand(
+          width: widthOfScreen * .80, height: heightOfScreen),
       child: const Icon(
         Icons.menu,
         size: 36,
+        color: Color(0xF6F6F6F6),
       ),
     );
   }
