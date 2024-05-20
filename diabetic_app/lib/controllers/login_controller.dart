@@ -1,13 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:path_provider/path_provider.dart';
 
 class LoginController {
   //Clase no trabajada aún, se tiene que modificar para hacer match con la API.
+  String id = "";
   String name = "";
   String email = "";
   String password = "";
+  int numNivel = 0;
+  int numPregunta = 0;
 
   static LoginController? _instance;
 
@@ -17,6 +21,11 @@ class LoginController {
     _instance ??= LoginController._();
     return _instance!;
   }
+
+
+  String getId(){
+    return id;
+}
 
   String getName() {
     return name;
@@ -49,9 +58,12 @@ class LoginController {
     String jsonString = json.encode(jsonData);
     File file = File(path);
     file.writeAsStringSync(jsonString);
+    id = jsonData["id"] as String;
     name = jsonData["name"];
     email = jsonData["email"];
     password = jsonData["password"];
+    numNivel = jsonData["numNivel"];
+    numPregunta = jsonData["numPregunta"];
     print("Json guardado en dirección: $path");
   }
 
@@ -65,6 +77,7 @@ class LoginController {
         final data = await json
             .decode(response); //Se obtiene el Json con el que se trabajará
 
+        id = data['id'];
         name = data['name'];
         email = data['email'];
         password = data['password'];
@@ -79,7 +92,7 @@ class LoginController {
     bool userExist = false;
     try {
       String path = await _getUserDataFilePath();
-      print(path);//Se obtiene la ruta del json
+      print(path); //Se obtiene la ruta del json
       File file = File(path);
       if (await file.exists()) {
         String response = await file.readAsString();
@@ -102,15 +115,44 @@ class LoginController {
   }
 
   //Actualizar la información del archivo userToken.json
-  Future<void> updateUserDataJSONFile(String email, String password) async {
-    Map<String, dynamic> data = {
-      "email": email,
-      "password": password
-    };
-    await createUserDataJSONFile(data); //Se sobrescribe el progreso actual
+  Future<void> updateUserDataJSONFile(String name, String email) async {
+    String path = await _getUserDataFilePath(); //Se obtiene la ruta del json
+    File file = File(path);
+    if (await file.exists()) {
+      String response = await file.readAsString();
+      final data = await json
+          .decode(response); //Se obtiene el Json con el que se trabajará
+
+      Map<String, dynamic> fakeJson = {
+        "id": data["id"],
+        'name': name,
+        'email': email,
+        'password': data["password"],
+        "numNivel": data["numNivel"],
+        "numPregunta": data["numPregunta"],
+      };
+
+      this.name = name;
+      this.email = email;
+
+      await createUserDataJSONFile(
+          fakeJson); //Se sobrescribe el progreso actual
+    }
   }
 
-  /*bool userNotFound(String? errorMessage) {
+  Future<void> closeSession() async {
+    id = "";
+    name = "";
+    email = "";
+    password = "";
+    numNivel = 0;
+    numPregunta = 0;
+    String path = await _getUserDataFilePath();
+    File file = File(path);
+    file.delete();
+  }
+
+/*bool userNotFound(String? errorMessage) {
     String? error = 'There is no user record corresponding to this identifier.';
     if (errorMessage!.contains(error)) {
       return true;
