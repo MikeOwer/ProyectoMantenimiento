@@ -1,3 +1,4 @@
+import 'package:diabetic_app/ProyectColors.dart';
 import 'package:diabetic_app/my_widgets/activity_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -137,7 +138,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF002556),
+        backgroundColor: ProyectColors().primaryColor,
         title: _title(),
         actions: const [
           Padding(
