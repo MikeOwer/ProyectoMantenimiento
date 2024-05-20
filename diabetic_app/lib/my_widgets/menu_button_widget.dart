@@ -1,11 +1,9 @@
+import 'package:diabetic_app/controllers/login_controller.dart';
 import 'package:diabetic_app/ProyectColors.dart';
 import 'package:diabetic_app/pages/config_page.dart';
+import 'package:diabetic_app/pages/login_register_page.dart';
 import 'package:diabetic_app/pages/quiz_page.dart';
 import 'package:flutter/material.dart';
-import 'package:diabetic_app/pages/login_register_page.dart';
-import 'package:diabetic_app/pages/quiz_lobby_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../my_classes/auth.dart';
 
 class MenuButtonWidget extends StatefulWidget {
   const MenuButtonWidget({super.key});
@@ -15,8 +13,30 @@ class MenuButtonWidget extends StatefulWidget {
 }
 
 class _MenuButtonWidgetState extends State<MenuButtonWidget> {
-  final User? user = Auth().currentUser;
+  //final User? user = Auth().currentUser;
+  LoginController loginController = LoginController.getInstance();
+  bool logedIn = false; //(user != null);
+
   void onPressed() {}
+  
+   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    loadUserData();
+  }
+
+  Future<void> loadUserData() async {
+    await loginController.readUserDataJSONFile();
+    setState(() {
+      logedIn = loginController.getEmail() != "" &&
+          loginController.getPassword() != "";
+      print("Menu -> loginController.getEmail(): ${loginController.getEmail()}, loginController.getPassword(): ${loginController.getPassword()}");
+      print("Menu -> Valor de logedIn: $logedIn");
+    });
+  }
+  
 /*
   Widget menuLoginButton(BuildContext context) {
     return GestureDetector(
@@ -71,20 +91,39 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
                 QuizPage()) //Manera de entrar a el quiz rápido
         );
   }
+
   //Espacio para los demás métodos de acción de los botones restantes
 
   void loginButtonPressed(BuildContext context) {
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const LoginPage()));
+            context, MaterialPageRoute(builder: (context) => const LoginPage()))
+        .then((value) => setState(() {
+              logedIn = loginController.getEmail() != "" &&
+                  loginController.getPassword() != "";
+            }));
   }
 
   void configButtonPressed(BuildContext context) {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const ConfigPage()));
+    Navigator.push(context,
+            MaterialPageRoute(builder: (context) => const ConfigPage()))
+        .then((value) => setState(() {
+              logedIn = loginController.getEmail() != "" &&
+                  loginController.getPassword() != "";
+            }));
   }
 
   @override
   Widget build(BuildContext context) {
+/*if (logedIn = loginController.getEmail() != "" &&
+        loginController.getPassword() != "") {
+    logedIn = true;
+    }*/
+    setState(() {
+      logedIn = loginController.getEmail() != "" &&
+          loginController.getPassword() != "";
+    });
+    print("menu -> loginController.getName(): ${loginController.getName()},loginController.getEmail(): ${loginController.getEmail()}, loginController.getPassword(): ${loginController.getPassword()}");
+    print("menu -> valorcito de logedIn: $logedIn");
     final widthOfScreen = MediaQuery.of(context).size.width;
     final heightOfScreen = MediaQuery.of(context).size.height;
     return PopupMenuButton(
@@ -142,14 +181,12 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
         ),
         */
         PopupMenuItem(
+          //child: menuLoginButton(context),
             child: Row(
           children: [
-            menuLoginButton(context),
+            logedIn ? menuProfileButton(context) : menuLoginButton(context),
           ],
         )
-            //child: user != null
-            //  ? menuProfileButton(context)
-            //  : menuLoginButton(context),
             ),
       ],
       color: ProyectColors().backgroundColor,

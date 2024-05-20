@@ -1,31 +1,65 @@
+import 'dart:convert';
 
 import 'package:diabetic_app/controllers/login_controller.dart';
-import 'package:diabetic_app/pages/home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../my_classes/auth.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
-
 }
 
 class _LoginPageState extends State<LoginPage> {
   String? errorMessage = '';
   bool isLogin = true;
   bool passwordVisible = true;
-  
-  LoginController loginController = LoginController();
+
+  LoginController loginController = LoginController.getInstance();
   final Map _userObj = {};
 
+  final TextEditingController _controllerName = TextEditingController();
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
 
   Future<void> signInWithEmailAndPassword() async {
     try {
+      String email = _controllerEmail.text;
+      String password = _controllerPassword.text;
+
+      final response = await http.post(
+        Uri.parse("https://escaner3d.amperiomid.com/login"),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body:
+        jsonEncode(<String, String>{'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data =
+        jsonDecode(response.body) as Map<String, dynamic>;
+        var numNivel = data["numNivel"] != null ? data["numNivel"] : 0;
+        var numPregunta =
+        data["numPregunta"] != null ? data["numPregunta"] : 0 ;
+        Map<String, dynamic> fakeJson = {
+          "id": data["id"],
+          'name': data["name"],
+          'email': data["email"],
+          'password': data["password"],
+          "numNivel": numNivel,
+          "numPregunta": numPregunta,
+        };
+        loginController.createUserDataJSONFile(fakeJson);
+      }
+      if (await loginController.userExistInJSONFile(email, password)) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
+    } catch (error) {
+      print(error);
+    }
+    /* try {
       await Auth().signInWithEmailAndPassword(
           email: _controllerEmail.text,
           password: _controllerPassword.text,
@@ -53,11 +87,55 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
 
-    }
+    } */
   }
 
   Future<void> createUserWithEmailAndPassword() async {
     try {
+      String name = _controllerName.text;
+      String email = _controllerEmail.text;
+      String password = _controllerPassword.text;
+      print("name: $name ,email: $email, password: $password");
+
+      final response = await http.post(
+        Uri.parse("https://escaner3d.amperiomid.com/usuarios/crear"),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'name': name,
+          'email': email,
+          'password': password
+        }),
+      );
+
+      print("statusCode: ${response.statusCode}");
+      //print("La respuesta es: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data =
+        jsonDecode(response.body) as Map<String, dynamic>;
+        Map<String, dynamic> fakeJson = {
+          "id": data["id"],
+          'name': data["name"],
+          'email': data["email"],
+          'password': data["password"],
+          "numNivel": 0,
+          "numPregunta": 0,
+        };
+        print("Registrado");
+        print(response.body);
+        loginController.createUserDataJSONFile(fakeJson);
+        if (await loginController.userExistInJSONFile(email, password)) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      } else {
+        print("no registrado");
+        print(response.body);
+      }
+    } catch (error) {
+      print(error);
+    }
+    /* try {
       await Auth().createUserWithEmailAndPassword(
         email: _controllerEmail.text,
         password: _controllerPassword.text,
@@ -83,11 +161,11 @@ class _LoginPageState extends State<LoginPage> {
           errorMessage = e.message;
         });
       }
-    }
+    } */
   }
 
   Future<void> signInWithFacebook() async {
-    try {
+    /* try {
       await Auth().signInWithFacebook();
       Navigator.push(
           context,
@@ -95,35 +173,34 @@ class _LoginPageState extends State<LoginPage> {
       );
     } on FirebaseAuthException catch (e,s) {
       print('Error $e, Stacktrace:$s');
-    }
+    } */
   }
-  Future<void> signInWithGoogle() async {
+
+  /* Future<void> signInWithGoogle() async {
     try{
       await Auth().signInWithGoogle();
     } on FirebaseAuthException catch (e,s) {
       print('Error $e, Stacktrace: $s');
     }
-  }
+  } */
 
   Widget _title() {
-    return const Text('Diabetic App',
-      style: TextStyle(
-        fontSize: 26
-      )
-      ,);
+    return const Text(
+      'Diabetic App',
+      style: TextStyle(fontSize: 26),
+    );
   }
 
   Widget _entryField(String title, TextEditingController controller) {
     Widget object;
-    if(title == 'Correo') {
+    if (title == 'Correo') {
       object = TextField(
         controller: controller,
         decoration: InputDecoration(
-          labelText: title,
-          hintText: 'CorreoEjemplo@correo.com',
-          alignLabelWithHint: false,
-          filled: true
-        ),
+            labelText: title,
+            hintText: 'CorreoEjemplo@correo.com',
+            alignLabelWithHint: false,
+            filled: true),
       );
     } else {
       object = TextField(
@@ -132,12 +209,11 @@ class _LoginPageState extends State<LoginPage> {
         decoration: InputDecoration(
           labelText: title,
           hintText: 'Contraseña',
-          helperText: isLogin? '':'Mínimo 6 caracteres',
+          helperText: isLogin ? '' : 'Mínimo 6 caracteres',
           helperStyle: const TextStyle(color: Colors.blueGrey),
           suffixIcon: IconButton(
-            icon: Icon(passwordVisible
-                ? Icons.visibility
-                : Icons.visibility_off),
+            icon:
+            Icon(passwordVisible ? Icons.visibility : Icons.visibility_off),
             onPressed: () {
               setState(() {
                 passwordVisible = !passwordVisible;
@@ -155,74 +231,90 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _errorMessage() {
-    return Text(errorMessage == '' ? '' : '$errorMessage', textAlign: TextAlign.center,);
+    return Text(
+      errorMessage == '' ? '' : '$errorMessage',
+      textAlign: TextAlign.center,
+    );
   }
 
   Widget _submitButton() {
     return ElevatedButton(
-        onPressed:
-        isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
-        child: Text(isLogin ? 'Iniciar Sesión' : 'Registrarse'),
+      onPressed:
+      isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
+      child: Text(isLogin ? 'Iniciar Sesión' : 'Registrarse'),
     );
   }
 
   Widget _loginOrRegisterButton() {
     return TextButton(
-        onPressed: () {
-          setState(() {
-            isLogin = !isLogin;
-          });
-        },
-        child: Text(isLogin ? 'Regístrese' : 'Inicie Sesión'),
+      onPressed: () {
+        setState(() {
+          isLogin = !isLogin;
+        });
+      },
+      child: Text(isLogin ? 'Regístrese' : 'Inicie Sesión'),
     );
   }
 
-  Widget _loginWithFacebookButton(){
+  Widget _loginWithFacebookButton() {
     return ElevatedButton(
-        onPressed: signInWithFacebook,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-        ),
-        child: const Text('Inicia Sesión con Facebook'),
+      onPressed: signInWithFacebook,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue,
+      ),
+      child: const Text('Inicia Sesión con Facebook'),
     );
   }
 
-  Widget _loginWithGoogleButton(){
+  /* Widget _loginWithGoogleButton() {
     return ElevatedButton(
-        onPressed: signInWithGoogle,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orangeAccent,
-        ),
-        child: const Text('Inicia Sesión con Google'),
+      onPressed: signInWithGoogle,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.orangeAccent,
+      ),
+      child: const Text('Inicia Sesión con Google'),
     );
-  }
+  } */
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: _title(),
-      ),
-      body: SingleChildScrollView(
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              _entryField('Correo', _controllerEmail),
-              _entryField('Contraseña', _controllerPassword),
-              _errorMessage(),
-              _submitButton(),
-              _loginOrRegisterButton(),
-              const SizedBox(height: 80,),
-              _loginWithFacebookButton(),
-              //_loginWithGoogleButton(),
-            ],
-          ),
+        appBar: AppBar(
+          title: _title(),
         ),
-      )
-    );
+        body: SingleChildScrollView(
+          child: Container(
+            height: MediaQuery
+                .of(context)
+                .size
+                .height,
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                if (!isLogin)
+                  TextField(
+                    controller: _controllerName,
+                    decoration: const InputDecoration(
+                        labelText: "Nombre",
+                        hintText: 'Nombre',
+                        alignLabelWithHint: false,
+                        filled: true),
+                  ),
+                _entryField('Correo', _controllerEmail),
+                _entryField('Contraseña', _controllerPassword),
+                _errorMessage(),
+                _submitButton(),
+                _loginOrRegisterButton(),
+                const SizedBox(
+                  height: 80,
+                ),
+                _loginWithFacebookButton(),
+                //_loginWithGoogleButton(),
+              ],
+            ),
+          ),
+        ));
   }
 }

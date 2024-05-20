@@ -1,12 +1,19 @@
+
 import 'package:diabetic_app/ProyectColors.dart';
 import 'package:diabetic_app/my_widgets/activity_card_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:diabetic_app/my_classes/auth.dart';
 import 'package:diabetic_app/my_widgets/news_card_widget.dart';
+import 'package:diabetic_app/controllers/login_controller.dart';
 import 'package:diabetic_app/controllers/news_controller.dart';
-import 'package:diabetic_app/my_widgets/menu_button_widget.dart';
 import 'package:diabetic_app/controllers/quiz_controller.dart';
+import 'package:diabetic_app/my_classes/auth.dart';
+import 'package:diabetic_app/my_widgets/activity_card_widget.dart';
+import 'package:diabetic_app/my_widgets/menu_button_widget.dart';
+import 'package:diabetic_app/my_widgets/news_card_widget.dart';
+import 'package:diabetic_app/pages/login_register_page.dart';
+import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
   //Se visualiza las tarjetas de noticias y accesos directos
@@ -17,10 +24,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final User? user = Auth().currentUser;
+  //final User? user = Auth().currentUser;
   List<NewsCard> news = [];
   NewsController newsController = NewsController();
   QuizController quizController = QuizController.getInstance();
+  LoginController loginController = LoginController.getInstance();
+  bool logedIn = false; //(user != null);
+
   bool noticeVisible = true;
   bool isVisible = true;
 
@@ -30,7 +40,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _title() {
     return Container(
-      child: Center(
+      child: const Center(
         child: Text(
           'Gluconexión',
           style: TextStyle(fontSize: 34.0, color: Colors.white),
@@ -76,11 +86,28 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     loadNews();
     loadProgress();
+    loadUserData();
+    loginController.readUserDataJSONFile();
+    setState(() {
+      logedIn = loginController.getEmail() != "" &&
+          loginController.getPassword() != "";
+      print("loginController.getName(): ${loginController.getName()},loginController.getEmail(): ${loginController.getEmail()}, loginController.getPassword(): ${loginController.getPassword()}");
+      print("Valor de logedIn: $logedIn");});
     //updateLoginRegistry();
   }
 
   Future<void> loadProgress() async {
     await quizController.readProgressJSONFile();
+  }
+
+  Future<void> loadUserData() async {
+    await loginController.readUserDataJSONFile();
+    setState(() {
+      logedIn = loginController.getEmail() != "" &&
+          loginController.getPassword() != "";
+      print("loginController.getName(): ${loginController.getName()},loginController.getEmail(): ${loginController.getEmail()}, loginController.getPassword(): ${loginController.getPassword()}");
+      print("Valor de logedIn: $logedIn");
+    });
   }
 
   Future<void> loadNews() async {
@@ -98,41 +125,69 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       noticeVisible = false;
     });
-  }
-
+  }  
+  
   void toggleVisibility() {
     setState(() {
       isVisible = !isVisible;
     });
   }
-  /*Widget _noticeWidget() {
-    bool logedIn = (user != null);
+  
+   Widget _noticeWidget() {
+    if (logedIn = loginController.getEmail() != "" &&
+        loginController.getPassword() != "") {
+      logedIn = true;
+    }
+    print("valorcito de loginController.getName(): ${loginController.getName()},loginController.getEmail(): ${loginController.getEmail()}, loginController.getPassword(): ${loginController.getPassword()}");
+    print("valorcito de logedIn: $logedIn");
+    
     return Center(
       child: Card(
-        color: Colors.white54,
+        color: const Color(0xFF002556),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(15),
           child: Column(
             children: [
               Text(
                 logedIn
-                    ? '¡Bienvenido de vuelta!'
-                    : 'No ha iniciado sesión o su sesión ha expirado.',
-                style: const TextStyle(fontSize: 20),
+                    ? '¡Bienvenido de vuelta ${loginController.getName()}!'
+                    : 'Inicie sesión para llevar un seguimiento de su progreso.',
+                style: const TextStyle(fontSize: 20, color: Color(0xFFFFFFFF)),
+                textAlign: TextAlign.center,
               ),
-              TextButton(
-                onPressed: _closeNoticeWidget,
-                child: const Text(
-                  'Cerrar',
-                  style: TextStyle(fontSize: 20, color: Colors.grey),
-                ),
-              )
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                if (!logedIn)
+                  TextButton(
+                    onPressed: () => {
+                      Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const LoginPage()))
+                          .then((value) => {
+                                loginController
+                                    .readUserDataJSONFile()
+                                    .then((value) => setState(() {
+                                          logedIn = loginController.getName() !=
+                                                  "" &&
+                                              loginController.getEmail() != "";
+                                        }))
+                              }),
+                    },
+                    child: const Text(
+                      'Entrar',
+                      style: TextStyle(fontSize: 20, color: Colors.grey),
+                    ),
+                  ),
+              ]),
             ],
           ),
         ),
       ),
     );
-  }*/
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,8 +203,10 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         children: <Widget>[
+          if (noticeVisible) _noticeWidget(),
+          const SizedBox(height: 20),
           const Text(
             'Actividades',
             textAlign: TextAlign.center,
@@ -158,7 +215,7 @@ class _HomePageState extends State<HomePage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          ..._buildActivityList(),
+           ..._buildActivityList(),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -190,9 +247,10 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
+          const SizedBox(height: 20),
           if (isVisible) ..._buildNewsList()
 
-          //if (noticeVisible) _noticeWidget(),
+          
           /*SizedBox(
             height: 100,
             /*child: Row(
@@ -234,13 +292,14 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                       SizedBox(height: 20),
+                      // Add the newsWidgets using addAll
                       ..._buildNewsList(),
                     ],
                   )),
                 ),
               ],
             ),¨*/
-          ),*/
+          ),
         ],
       ),
     );

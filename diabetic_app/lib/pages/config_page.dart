@@ -1,15 +1,17 @@
+import 'dart:convert';
+
+import 'package:diabetic_app/controllers/login_controller.dart';
+import 'package:diabetic_app/my_classes/auth.dart';
 import 'package:diabetic_app/pages/home_page.dart';
 import 'package:diabetic_app/repository/user_repository.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:diabetic_app/my_classes/auth.dart';
-
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../my_classes/model/user_model.dart';
 import '../my_widgets/menu_button_widget.dart';
 
-class ConfigPage extends StatefulWidget{
+class ConfigPage extends StatefulWidget {
   const ConfigPage({super.key});
-
 
   @override
   _ConfigPageState createState() => _ConfigPageState();
@@ -22,20 +24,21 @@ class _ConfigPageState extends State<ConfigPage> {
   bool editable = false;
   String fecha = '';
 
+  LoginController loginController = LoginController.getInstance();
   final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _apellidoPController = TextEditingController();
-  final TextEditingController _apellidoMController = TextEditingController();
-  final TextEditingController _telefonoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _genderController = TextEditingController();
+
+  /*final TextEditingController _apellidoPController = TextEditingController();
+  final TextEditingController _apellidoMController = TextEditingController();
+  final TextEditingController _telefonoController = TextEditingController();*/
+/*  final TextEditingController _genderController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _postalController = TextEditingController();
+  final TextEditingController _postalController = TextEditingController();*/
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    obtenerUserModel();
-
+    //obtenerUserModel();
   }
 
   void obtenerUserModel() async {
@@ -48,10 +51,11 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   Future<void> signOut() async {
-    await Auth().signOut();
-    Navigator.push(context, 
-        MaterialPageRoute(builder: (context) => const HomePage())
-    );
+    //await Auth().signOut();
+
+    loginController.closeSession();
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => const HomePage()));
   }
 
   void editButtonPressed() {
@@ -59,19 +63,40 @@ class _ConfigPageState extends State<ConfigPage> {
       editable = true;
     });
   }
+
   void saveButtonPressed() {
     setState(() {
       editable = false;
     });
     //Logica de guardado
+    String name = _nombreController.text != "" ? _nombreController.text : loginController.getName();
+    String email = _emailController.text != "" ? _emailController.text : loginController.getEmail();
+    
+    print("name: $name and email: $email");
+    print("id: ${loginController.getId()}");
+    http
+        .post(
+          Uri.parse(
+              "https://escaner3d.amperiomid.com/usuarios/editar/${loginController.getId()}"),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(<String, String>{
+            'name': name,
+            'email': email,
+          }),
+        ).then((value) => print(value.statusCode))
+        .catchError((onError) => print(onError));
+    loginController.updateUserDataJSONFile(
+        name, email);
     userModel.setNames(_nombreController.text);
-    userModel.setLastNameF(_apellidoPController.text);
+    /*userModel.setLastNameF(_apellidoPController.text);
     userModel.setLastNameM(_apellidoMController.text);
-    userModel.setPhoneNo(_telefonoController.text);
+    userModel.setPhoneNo(_telefonoController.text);*/
     //La fecha se guarda en el método _selectDate();
-    userModel.setGender(_genderController.text);
-    userModel.setPostalCode(_postalController.text);
-    userRepository.updateUser(userModel);
+    /*userModel.setGender(_genderController.text);
+    userModel.setPostalCode(_postalController.text);*/
+    //userRepository.updateUser(userModel);
     clearControllers();
   }
 
@@ -85,13 +110,13 @@ class _ConfigPageState extends State<ConfigPage> {
 
   void clearControllers() {
     _nombreController.clear();
-    _apellidoPController.clear();
+    /*_apellidoPController.clear();
     _apellidoMController.clear();
-    _telefonoController.clear();
+    _telefonoController.clear();*/
     _emailController.clear();
-    _genderController.clear();
+    /*_genderController.clear();
     _dateController.clear();
-    _postalController.clear();
+    _postalController.clear();*/
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -110,59 +135,45 @@ class _ConfigPageState extends State<ConfigPage> {
   }
 
   Widget _title(String title) {
-    return Text(title.isEmpty? 'Titulo': title ,
-      style: const TextStyle(
-        fontSize: 26
-      ),
+    return Text(
+      title.isEmpty ? 'Titulo' : title,
+      style: const TextStyle(fontSize: 26),
     );
   }
 
   Widget _textFTitle(String title) {
-    return Text(title.isEmpty? 'Titulo': title ,
-      style: const TextStyle(
-          fontSize: 22
-      ),
+    return Text(
+      title.isEmpty ? 'Titulo' : title,
+      style: const TextStyle(fontSize: 22),
     );
   }
 
   Widget _editButton() {
     return ElevatedButton(
-        onPressed: editButtonPressed,
-        child: const Text(
-            'Editar',
-            style: TextStyle(
-                fontSize: 24
-            )
-        ),
+      onPressed: editButtonPressed,
+      child: const Text('Editar', style: TextStyle(fontSize: 24)),
     );
   }
 
   Widget _saveButton() {
     return ElevatedButton(
         onPressed: saveButtonPressed,
-        child: const Text(
-            'Guardar',
-            style: TextStyle(
-                fontSize: 24
-            )
-        )
-    );
+        child: const Text('Guardar', style: TextStyle(fontSize: 24)));
   }
 
   Widget _cancelButton() {
     return ElevatedButton(
-        onPressed: cancelButtonPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.redAccent,
-        ),
+      onPressed: cancelButtonPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.redAccent,
+      ),
       child: const Text(
-          'Cancelar',
-          style: TextStyle(
-            fontSize: 24
-          ),
+        'Cancelar',
+        style: TextStyle(fontSize: 24),
       ),
     );
   }
+
   Widget _selectDateButton(BuildContext context) {
     return ElevatedButton(
         onPressed: () => _selectDate(context),
@@ -171,14 +182,12 @@ class _ConfigPageState extends State<ConfigPage> {
         ),
         child: const Text(
           'Elegir Fecha',
-          style: TextStyle(
-            fontSize: 24
-          ),
-        )
-    );
+          style: TextStyle(fontSize: 24),
+        ));
   }
 
-  Widget _entryField(String title, String hint, TextEditingController controller, bool editable) {
+  Widget _entryField(String title, String hint,
+      TextEditingController controller, bool editable) {
     return TextField(
       style: const TextStyle(fontSize: 20),
       controller: controller,
@@ -187,21 +196,29 @@ class _ConfigPageState extends State<ConfigPage> {
           hintText: hint,
           alignLabelWithHint: false,
           enabled: editable,
-          filled: true
-      ),
+          filled: true),
     );
   }
 
-
-
   Widget _infoArea() {
-   return Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10,),
-            _textFTitle("Nombre"),
-            _entryField(userModel.getNames(), 'Nombre', _nombreController, editable),
+    return Container(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(
+            height: 10,
+          ),
+          _textFTitle("Nombre"),
+          _entryField(
+              loginController.getName(), 'Nombre', _nombreController, editable),
+          const SizedBox(
+            height: 5,
+          ),
+          _textFTitle("Correo Electrónico"),
+          _entryField(loginController.getEmail(), 'ejemplo@correo.com',
+              _emailController, false),
+
+          /*
             const SizedBox(height: 5,),
             _textFTitle("Apellido Paterno"),
             _entryField(userModel.getLastNameF(), 'Apellido Paterno', _apellidoPController, editable),
@@ -212,9 +229,6 @@ class _ConfigPageState extends State<ConfigPage> {
             _textFTitle("Teléfono Celular"),
             _entryField(userModel.getPhoneNo(),'9990000000', _telefonoController, editable),
             const SizedBox(height: 5,),
-            _textFTitle("Correo Electrónico"),
-            _entryField(userModel.getEmail(), 'ejemplo@correo.com',_emailController, false),
-            const SizedBox(height: 5,),
             _textFTitle("Género"),
             _entryField(userModel.getGender(), 'H/M/Otro',_genderController, editable),
             const SizedBox(height: 5,),
@@ -223,26 +237,28 @@ class _ConfigPageState extends State<ConfigPage> {
             editable ? _selectDateButton(context) : const SizedBox(),
             const SizedBox(height: 5,),
             _textFTitle("Código Postal"),
-            _entryField(userModel.getPostalCode(), '97000',_postalController, editable),
-            const SizedBox(height: 5,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                editable? _cancelButton() : const SizedBox(),
-                const SizedBox(width: 5,),
-                editable? _saveButton() : _editButton()
-              ],
-            )
-          ],
-        ),
-      );
+            _entryField(userModel.getPostalCode(), '97000',_postalController, editable),*/
+          const SizedBox(
+            height: 5,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              editable ? _cancelButton() : const SizedBox(),
+              const SizedBox(
+                width: 5,
+              ),
+              editable ? _saveButton() : _editButton()
+            ],
+          )
+        ],
+      ),
+    );
   }
 
   void returnToMenu(BuildContext context) {
     Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage())
-    );
+        context, MaterialPageRoute(builder: (context) => const HomePage()));
   }
 
   @override
@@ -277,24 +293,25 @@ class _ConfigPageState extends State<ConfigPage> {
                     color: Colors.black,
                   ),
                   _infoArea(),
-                  const SizedBox(height: 20,),
-                  _title("Inicio de Sesión"),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  _title("Sesión"),
                   Container(
                     height: 1,
                     color: Colors.black,
                   ),
-                  TextButton(onPressed: signOut,
-                    child: const Text("Cerrar sesión",
-                      style:TextStyle(
-                          fontSize: 24,
-                          color: Colors.grey
-                      ),),
+                  TextButton(
+                    onPressed: signOut,
+                    child: const Text(
+                      "Cerrar sesión",
+                      style: TextStyle(fontSize: 24, color: Colors.red),
+                    ),
                   ),
                 ],
               ),
             ),
-        )
-      ),
+          )),
     );
   }
 }
