@@ -1,4 +1,5 @@
 import 'package:diabetic_app/controllers/login_controller.dart';
+import 'package:diabetic_app/ProyectColors.dart';
 import 'package:diabetic_app/pages/config_page.dart';
 import 'package:diabetic_app/pages/login_register_page.dart';
 import 'package:diabetic_app/pages/quiz_page.dart';
@@ -17,8 +18,8 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
   bool logedIn = false; //(user != null);
 
   void onPressed() {}
-
-  @override
+  
+   @override
   void initState() {
     // TODO: implement initState
     super.initState();
@@ -35,11 +36,43 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
       print("Menu -> Valor de logedIn: $logedIn");
     });
   }
-
+  
+/*
   Widget menuLoginButton(BuildContext context) {
     return GestureDetector(
       onTap: () => loginButtonPressed(context),
-      child: const Text('Iniciar Sesión'),
+      child: const Text(
+        'Iniciar Sesión',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+  */
+  Widget menuLoginButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => loginButtonPressed(context),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.login,
+            color: Colors.black,
+          ),
+          SizedBox(width: 8), // Espacio entre el ícono y el texto
+          Text(
+            'Iniciar Sesión',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -81,7 +114,7 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
 
   @override
   Widget build(BuildContext context) {
-    /*if (logedIn = loginController.getEmail() != "" &&
+/*if (logedIn = loginController.getEmail() != "" &&
         loginController.getPassword() != "") {
     logedIn = true;
     }*/
@@ -91,38 +124,78 @@ class _MenuButtonWidgetState extends State<MenuButtonWidget> {
     });
     print("menu -> loginController.getName(): ${loginController.getName()},loginController.getEmail(): ${loginController.getEmail()}, loginController.getPassword(): ${loginController.getPassword()}");
     print("menu -> valorcito de logedIn: $logedIn");
-
+    final widthOfScreen = MediaQuery.of(context).size.width;
+    final heightOfScreen = MediaQuery.of(context).size.height;
     return PopupMenuButton(
       itemBuilder: (context) => [
         PopupMenuItem(
-          child: GestureDetector(
-            onTap: () => quizButtonPressed(context),
-            child: const Text('Explorando tu bienestar'),
+          child: Row(
+            children: [
+              Icon(
+                Icons.volunteer_activism,
+                color: Colors.black, // Color del icono
+              ),
+              SizedBox(width: 8), // Espacio entre el icono y el texto
+              GestureDetector(
+                onTap: () => quizButtonPressed(context),
+                child: const Text(
+                  'Explorando tu bienestar',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
+        /*
         const PopupMenuItem(
           child: Row(
             children: [
-              Text('Opción 1'),
+              Text(
+                "Opción 1",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ],
           ),
         ),
         const PopupMenuItem(
           child: Row(
             children: [
-              Text('Opción 2'),
+              Text(
+                'Opción 2',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
             ],
           ),
         ),
+        */
         PopupMenuItem(
           //child: menuLoginButton(context),
-          child:
-              logedIn ? menuProfileButton(context) : menuLoginButton(context),
-        ),
+            child: Row(
+          children: [
+            logedIn ? menuProfileButton(context) : menuLoginButton(context),
+          ],
+        )
+            ),
       ],
+      color: ProyectColors().backgroundColor,
+      constraints: BoxConstraints.expand(
+          width: widthOfScreen * .80, height: heightOfScreen),
       child: const Icon(
         Icons.menu,
         size: 36,
+        color: Color(0xF6F6F6F6),
       ),
     );
   }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:diabetic_app/ProyectColors.dart';
 import 'package:diabetic_app/my_classes/quiz_question.dart';
