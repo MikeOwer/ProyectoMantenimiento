@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:diabetic_app/controllers/login_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -24,11 +27,34 @@ class _LoginPageState extends State<LoginPage> {
     try {
       String email = _controllerEmail.text;
       String password = _controllerPassword.text;
-      if (await loginController.userExistInJSONFile(email,password)) {
-        print("Son iguales");
+
+      final response = await http.post(
+        Uri.parse("https://escaner3d.amperiomid.com/login"),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body:
+        jsonEncode(<String, String>{'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data =
+        jsonDecode(response.body) as Map<String, dynamic>;
+        var numNivel = data["numNivel"] != null ? data["numNivel"] : 0;
+        var numPregunta =
+        data["numPregunta"] != null ? data["numPregunta"] : 0 ;
+        Map<String, dynamic> fakeJson = {
+          "id": data["id"],
+          'name': data["name"],
+          'email': data["email"],
+          'password': data["password"],
+          "numNivel": numNivel,
+          "numPregunta": numPregunta,
+        };
+        loginController.createUserDataJSONFile(fakeJson);
+      }
+      if (await loginController.userExistInJSONFile(email, password)) {
         Navigator.of(context).popUntil((route) => route.isFirst);
-      } else {
-        print("No existe el usuario");
       }
     } catch (error) {
       print(error);
@@ -71,25 +97,40 @@ class _LoginPageState extends State<LoginPage> {
       String password = _controllerPassword.text;
       print("name: $name ,email: $email, password: $password");
 
-      /*final response = await http.post(
-        Uri.parse("https://escaner3d.amperiomid.com/usuario/registrar"),
+      final response = await http.post(
+        Uri.parse("https://escaner3d.amperiomid.com/usuarios/crear"),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
-        body:
-            jsonEncode(<String, String>{'name':name,'email': email, 'password': password}),
-      );*/
-
-      //print("La respuesta es: ${response.statusCode}");
-      if (true) {
-        //response.statusCode == 200 ||
-        Map<String, dynamic> data = {
+        body: jsonEncode(<String, dynamic>{
           'name': name,
           'email': email,
           'password': password
+        }),
+      );
+
+      print("statusCode: ${response.statusCode}");
+      //print("La respuesta es: ${response.statusCode}");
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data =
+        jsonDecode(response.body) as Map<String, dynamic>;
+        Map<String, dynamic> fakeJson = {
+          "id": data["id"],
+          'name': data["name"],
+          'email': data["email"],
+          'password': data["password"],
+          "numNivel": 0,
+          "numPregunta": 0,
         };
-        loginController.createUserDataJSONFile(data);
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        print("Registrado");
+        print(response.body);
+        loginController.createUserDataJSONFile(fakeJson);
+        if (await loginController.userExistInJSONFile(email, password)) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      } else {
+        print("no registrado");
+        print(response.body);
       }
     } catch (error) {
       print(error);
@@ -172,7 +213,7 @@ class _LoginPageState extends State<LoginPage> {
           helperStyle: const TextStyle(color: Colors.blueGrey),
           suffixIcon: IconButton(
             icon:
-                Icon(passwordVisible ? Icons.visibility : Icons.visibility_off),
+            Icon(passwordVisible ? Icons.visibility : Icons.visibility_off),
             onPressed: () {
               setState(() {
                 passwordVisible = !passwordVisible;
@@ -199,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _submitButton() {
     return ElevatedButton(
       onPressed:
-          isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
+      isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
       child: Text(isLogin ? 'Iniciar Sesión' : 'Registrarse'),
     );
   }
@@ -243,7 +284,10 @@ class _LoginPageState extends State<LoginPage> {
         ),
         body: SingleChildScrollView(
           child: Container(
-            height: MediaQuery.of(context).size.height,
+            height: MediaQuery
+                .of(context)
+                .size
+                .height,
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
