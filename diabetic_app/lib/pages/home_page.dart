@@ -79,6 +79,12 @@ class _HomePageState extends State<HomePage> {
     loadNews();
     loadProgress();
     loadUserData();
+    loginController.readUserDataJSONFile();
+    setState(() {
+      logedIn = loginController.getEmail() != "" &&
+          loginController.getPassword() != "";
+      print("loginController.getName(): ${loginController.getName()},loginController.getEmail(): ${loginController.getEmail()}, loginController.getPassword(): ${loginController.getPassword()}");
+      print("Valor de logedIn: $logedIn");});
     //updateLoginRegistry();
   }
 
@@ -88,6 +94,12 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> loadUserData() async {
     await loginController.readUserDataJSONFile();
+    setState(() {
+      logedIn = loginController.getEmail() != "" &&
+          loginController.getPassword() != "";
+      print("loginController.getName(): ${loginController.getName()},loginController.getEmail(): ${loginController.getEmail()}, loginController.getPassword(): ${loginController.getPassword()}");
+      print("Valor de logedIn: $logedIn");
+    });
   }
 
   Future<void> loadNews() async {
@@ -108,10 +120,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _noticeWidget() {
-    if (loginController.getEmail() != "" &&
+    if (logedIn = loginController.getEmail() != "" &&
         loginController.getPassword() != "") {
       logedIn = true;
     }
+    print("valorcito de loginController.getName(): ${loginController.getName()},loginController.getEmail(): ${loginController.getEmail()}, loginController.getPassword(): ${loginController.getPassword()}");
+    print("valorcito de logedIn: $logedIn");
     return Center(
       child: Card(
         color: const Color(0xFF002556),
